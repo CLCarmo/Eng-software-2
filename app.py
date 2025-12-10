@@ -28,11 +28,15 @@ def index():
 
 @app.route('/add', methods=['POST'])
 def add():
+    # Pega o texto e remove espaços em branco antes e depois (.strip())
     titulo = request.form.get('titulo')
-    if titulo:
+    
+    # Só entra aqui se o título existir e não for vazio
+    if titulo and titulo.strip():
         nova_tarefa = Tarefa(titulo=titulo)
         db.session.add(nova_tarefa)
         db.session.commit()
+    
     return redirect(url_for('index'))
 
 @app.route('/update/<int:id>')

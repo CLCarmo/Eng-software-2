@@ -1,34 +1,41 @@
 import pytest
 from app import app, db, Tarefa
 
-# Configura um banco de dados temporário na memória para o teste (não estraga o seu banco real)
 @pytest.fixture(scope='module')
 def client():
+    # Configura para usar banco em MEMÓRIA (não afeta seu arquivo real)
     app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:' #
-
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:' 
+    
+    # Cria o cliente de teste
     with app.test_client() as client:
         with app.app_context():
             db.create_all()
+            # GARANTIA: Limpa qualquer lixo anterior
+            db.session.query(Tarefa).delete()
+            db.session.commit()
+            
         yield client
-        # O banco é destruído ao final do teste
+        # Limpeza pós-teste (opcional)
 
-# Teste 1: Verifica se a página carrega (Status 200)
 def test_index_carregamento(client):
     response = client.get('/')
-    assert response.status_code == 200 #
-
-# Teste 2: Verifica se dá para criar uma tarefa
-def test_adicionar_tarefa(client):
-    response = client.post('/add', data={'titulo': 'Tarefa de Teste Pytest'}, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Tarefa de Teste Pytest" in response.data # Confirma se apareceu na página
 
-# Teste 3: Segurança (Não deixar criar tarefa vazia)
+def test_adicionar_tarefa(client):
+    with app.app_context():
+        # Limpa antes de começar para garantir contagem zero
+        db.session.query(Tarefa).delete()
+        db.session.commit()
+        
+    response = client.post('/add', data={'titulo': 'Tarefa Teste'}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Tarefa Teste" in response.data
+
 def test_adicionar_vazio_nao_cria(client):
-    # Tenta enviar sem título
+    # Tenta criar vazia
     client.post('/add', data={'titulo': ''}, follow_redirects=True)
     
     with app.app_context():
-        # Conta as tarefas: Só deve existir a 'Tarefa de Teste Pytest' do teste anterior
-        assert Tarefa.query.count() == 1 #
+        # Deve ter APENAS a 'Tarefa Teste' criada no teste anterior
+        assert Tarefa.query.count() == 1
