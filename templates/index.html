@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas - Eng Software II</title>
+    <style>
+        /* Estilo Limpo e Acessível */
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; background: #f4f4f9; }
+        h1 { text-align: center; color: #333; }
+        
+        /* Formulário */
+        form { display: flex; gap: 10px; margin-bottom: 2rem; }
+        input { flex: 1; padding: 10px; font-size: 1rem; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #218838; }
+
+        /* Lista */
+        ul { list-style: none; padding: 0; }
+        li { background: white; border-bottom: 1px solid #ddd; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Estados */
+        .concluida { text-decoration: line-through; color: #888; }
+        
+        /* Links de Ação */
+        .acoes a { margin-left: 10px; text-decoration: none; font-weight: bold; }
+        .btn-concluir { color: #007bff; }
+        .btn-excluir { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>Minhas Tarefas</h1>
+
+    <form action="/add" method="POST">
+        <input type="text" name="titulo" placeholder="Nova tarefa..." required aria-label="Digitar nova tarefa">
+        <button type="submit">Adicionar</button>
+    </form>
+
+    <ul>
+        {% for tarefa in tarefas %}
+        <li>
+            <span class="{{ 'concluida' if tarefa.concluida else '' }}">
+                {{ tarefa.titulo }}
+            </span>
+            <div class="acoes">
+                <a href="/update/{{ tarefa.id }}" class="btn-concluir">
+                    {{ 'Desfazer' if tarefa.concluida else 'Concluir' }}
+                </a>
+                <a href="/delete/{{ tarefa.id }}" class="btn-excluir" onclick="return confirm('Tem certeza que deseja excluir?');">
+                    Excluir
+                </a>
+            </div>
+        </li>
+        {% else %}
+        <li><em>Nenhuma tarefa ainda. Adicione uma acima!</em></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
